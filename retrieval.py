@@ -29,24 +29,40 @@ def truncate_text(context, question, max_tokens=512, reserved_for_prompt=100):
     tokens = tokenizer.encode(context, truncation=True, max_length=max_context_tokens, return_tensors="pt")[0]
     return tokenizer.decode(tokens, skip_special_tokens=True)
 
-# Function to answer a question based on context retrieved via FAISS
+import re
+
+def extract_year(question):
+    match = re.search(r"\b(20[0-2][0-9])\b", question)
+    return match.group(1) if match else None
+
+def filter_by_year(chunks, year):
+    return [chunk for chunk in chunks if year in chunk]
+
 def answer_question(question, top_k=2):
-    # Step 1: Encode the question and perform search in FAISS
+    # Step 1: Encode question and perform FAISS search
     question_embedding = embedding_model.encode([question]).astype("float32")
     D, I = index.search(question_embedding, top_k)
-    
-    # Step 2: Retrieve relevant context from the dataset
+
+    # Step 2: Retrieve initial chunks
     retrieved_chunks = [texts[i] for i in I[0]]
+
+    # Step 3: Filter chunks if a year is detected in the question
+    year = extract_year(question)
+    if year:
+        filtered_chunks = filter_by_year(retrieved_chunks, year)
+        if filtered_chunks:
+            retrieved_chunks = filtered_chunks
+
+    # Step 4: Truncate context if needed
     context = "\n".join(retrieved_chunks)
     context = truncate_text(context, question, max_tokens=512, reserved_for_prompt=100)
-    
-    # Step 3: Prepare the prompt with the retrieved context and the question
+
+    # Step 5: Build prompt and generate response
     prompt = f"Answer the question based on the context:\n\nContext:\n{context}\n\nQuestion: {question}"
-    
-    # Step 4: Generate the answer using the causal language model (Gemma)
-    response = qa(prompt, max_new_tokens=200)[0]['generated_text']  # Using max_new_tokens instead of max_length
+    response = qa(prompt, max_new_tokens=200)[0]['generated_text']
     
     print("\nAnswer:", response)
+
 
 # Example usage
 answer_question("Which areas were most affected in 2017?")
