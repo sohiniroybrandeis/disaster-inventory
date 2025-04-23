@@ -49,4 +49,4 @@ def answer_question(question, top_k=2):
     print("\nAnswer:", response)
 
 # Example usage
-answer_question("Give me a summary of the natural disasters that happened in 2015.")
+answer_question("What are some of the biggest precautions to take, given the natural disasters that have occurred in Africa over the last few years?")
