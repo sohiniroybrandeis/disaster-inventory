@@ -2,3 +2,4 @@
 cleaned_rag_dataset.csv
 disaster_faiss.index
 scraped_articles.csv
+indexed_chunks.csv
