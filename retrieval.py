@@ -61,4 +61,4 @@ def answer_question(question, top_k=2):
     print("\nAnswer:", response.split("<|assistant|>")[-1].strip())
 
 # Example usage
-answer_question("Summary of the disasters that took place in 2019?")
+answer_question("Give me a summary of the disasters that occurred in 2019.")
