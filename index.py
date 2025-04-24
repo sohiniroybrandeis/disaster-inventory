@@ -14,6 +14,12 @@ chunks = df["chunk"].tolist()
 # Load a lightweight, accurate embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')  # Fast + good quality
 
+for i in range(3):  # show a few sample entries
+    print(f"\n--- Example chunk {i} ---")
+    print(f"Title: {df['title'][i]}")
+    print(f"Content: {df['content'][i]}")
+    print(f"Full chunk: {df['title'][i]} - {df['content'][i]}")
+
 # Generate embeddings
 embeddings = model.encode(chunks, show_progress_bar=True)
 
