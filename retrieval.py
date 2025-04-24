@@ -7,6 +7,7 @@ import re
 import dateparser
 from datetime import datetime
 from word2number import w2n
+import torch
 
 
 # Load SentenceTransformer model for embeddings
@@ -82,11 +83,13 @@ def answer_question(question, top_k=5):
         temp_index = faiss.IndexFlatL2(filtered_embeddings.shape[1])
         temp_index.add(filtered_embeddings)
         query_embedding = embedding_model.encode([question]).astype("float32")
+        torch.cuda.empty_cache()
         distances, indices = temp_index.search(query_embedding, top_k)
         retrieved_chunks = [filtered_texts[i] for i in indices[0]]
     else:
         # No year filter, default to full index
         query_embedding = embedding_model.encode([question]).astype("float32")
+        torch.cuda.empty_cache()
         distances, indices = index.search(query_embedding, top_k)
         retrieved_chunks = [texts[i] for i in indices[0]]
 
@@ -103,6 +106,7 @@ def answer_question(question, top_k=5):
     )
 
     result = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]["generated_text"]
+    torch.cuda.empty_cache()
     print("\n[Answer]")
     print(result)
 
