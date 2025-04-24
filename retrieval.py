@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 import re
+import dateparser
+from datetime import datetime
 
 
 # Load SentenceTransformer model for embeddings
@@ -31,8 +33,19 @@ qa = pipeline(
 )
 
 def extract_year_from_question(question):
+    # First try to extract an explicit year (2015–2025)
     match = re.search(r"\b(201[5-9]|202[0-5])\b", question)
-    return int(match.group(1)) if match else None
+    if match:
+        return int(match.group(1))
+
+    # Otherwise, try parsing relative expressions
+    parsed_date = dateparser.parse(question, settings={"PREFER_DATES_FROM": "past"})
+    if parsed_date:
+        year = parsed_date.year
+        if 2015 <= year <= 2025:
+            return year
+
+    return None
 
 def answer_question(question, top_k=5):
     print(f"\n=== Question: {question} ===")
