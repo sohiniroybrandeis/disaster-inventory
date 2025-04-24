@@ -49,4 +49,4 @@ def answer_question(question, top_k=2):
     print("\nAnswer:", response)
 
 # Example usage
-answer_question("Summarize disasters that happened in 2017 in Africa.")
+answer_question("Summarize disasters that happened in 2025 in Africa.")
