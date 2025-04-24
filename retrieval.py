@@ -15,6 +15,8 @@ df = pd.read_csv("indexed_chunks.csv")
 texts = df["title"].fillna("") + " - " + df["content"].fillna("")
 texts = texts.tolist()
 
+print(df.columns)
+
 # Load Gemma 2B Instruct model for text generation
 model_name = "google/gemma-2b-it"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
