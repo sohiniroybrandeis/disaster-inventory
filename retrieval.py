@@ -28,28 +28,28 @@ qa = pipeline(
 )
 
 # Function to truncate context text to fit within the token limit
-def truncate_text(context, question, max_tokens=512, reserved_for_prompt=100):
-    max_context_tokens = max_tokens - reserved_for_prompt
-    sentences = context.split('. ')
+# def truncate_text(context, question, max_tokens=512, reserved_for_prompt=100):
+#     max_context_tokens = max_tokens - reserved_for_prompt
+#     sentences = context.split('. ')
     
-    truncated_context = ''
-    current_tokens = 0
+#     truncated_context = ''
+#     current_tokens = 0
 
-    for sentence in sentences:
-        sentence = sentence.strip()
-        if not sentence:
-            continue
-        sentence += '. '
-        sentence_tokens = tokenizer.encode(sentence, truncation=False, return_tensors="pt")[0]
-        if current_tokens + len(sentence_tokens) <= max_context_tokens:
-            truncated_context += sentence
-            current_tokens += len(sentence_tokens)
-        else:
-            break
+#     for sentence in sentences:
+#         sentence = sentence.strip()
+#         if not sentence:
+#             continue
+#         sentence += '. '
+#         sentence_tokens = tokenizer.encode(sentence, truncation=False, return_tensors="pt")[0]
+#         if current_tokens + len(sentence_tokens) <= max_context_tokens:
+#             truncated_context += sentence
+#             current_tokens += len(sentence_tokens)
+#         else:
+#             break
 
-    print("Original context tokens:", len(tokenizer.encode(context)))
-    print("Truncated to tokens:", current_tokens)
-    return truncated_context.strip()
+#     print("Original context tokens:", len(tokenizer.encode(context)))
+#     print("Truncated to tokens:", current_tokens)
+#     return truncated_context.strip()
 
 # Function to answer a question based on context retrieved via FAISS
 def answer_question(question, top_k=2):
@@ -62,7 +62,7 @@ def answer_question(question, top_k=2):
     # Step 2: Retrieve relevant context from the dataset
     retrieved_chunks = [texts[i] for i in I[0]]
     context = "\n".join(retrieved_chunks)
-    context = truncate_text(context, question, max_tokens=512, reserved_for_prompt=100)
+    # context = truncate_text(context, question, max_tokens=512, reserved_for_prompt=100)
 
     # Print a preview of the context
     print("\n[Context Preview]")
