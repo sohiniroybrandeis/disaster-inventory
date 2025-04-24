@@ -16,7 +16,7 @@ texts = df["chunk"]
 texts = texts.tolist()
 
 # Load Gemma 2B Instruct model for generation
-model_name = "google/gemma-2b-it"
+model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 causal_model = AutoModelForCausalLM.from_pretrained(model_name)
 
@@ -28,7 +28,7 @@ qa = pipeline(
     return_full_text=False
 )
 
-def answer_question(question, top_k=2):
+def answer_question(question, top_k=5):
     print(f"\n=== Question: {question} ===")
 
     # Retrieve top-k chunks
@@ -43,12 +43,13 @@ def answer_question(question, top_k=2):
 
     # Construct the prompt
     prompt = (
-        "Answer the following question using only the information from the context below.\n"
-        "If the answer is not available, say 'I don't know.'\n\n"
-        f"Context:\n{context}\n\n"
-        f"Question: {question}\n\n"
-        "Answer:"
+    "Use the following context to answer the question. "
+    "If the answer isn’t clearly stated, try your best to infer it, but don't guess.\n\n"
+    f"Context:\n{context}\n\n"
+    f"Question: {question}\n\n"
+    "Answer:"
     )
+
 
     # Generate and return the answer
     result = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]["generated_text"]
