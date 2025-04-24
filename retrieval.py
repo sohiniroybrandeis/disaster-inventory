@@ -96,12 +96,14 @@ def answer_question(question, top_k=5):
     print(context[:500] + "...\n")
 
     prompt = (
-        "Use the following context to answer the question. "
-        "If the answer isn’t clearly stated, try your best to infer it, but don't guess.\n\n"
+        "You are a helpful assistant summarizing recent disaster events in Africa based on the context below. "
+        "Use the information to write a concise summary, highlighting locations, dates, and impacts. "
+        "If only partial information is available, summarize what is known.\n\n"
         f"Context:\n{context}\n\n"
         f"Question: {question}\n\n"
-        "Answer:"
+        "Summary:"
     )
+
 
     with torch.no_grad():
         result = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]["generated_text"]
