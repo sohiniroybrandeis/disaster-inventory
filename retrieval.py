@@ -64,4 +64,4 @@ def answer_question(question, top_k=2):
 
 
 # Example usage
-answer_question("Summary of the disasters that took place in 2017?")
+answer_question("Summary of the disasters that took place in 2019?")
