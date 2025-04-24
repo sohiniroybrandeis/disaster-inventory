@@ -81,4 +81,4 @@ def answer_question(question, top_k=5):
     print("\n[Answer]")
     print(result)
 
-answer_question("Summarize the disasters that occurred in Africa in 2017.")
+answer_question("Summarize the disasters that occurred in Africa over the last two years.")
