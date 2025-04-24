@@ -73,25 +73,22 @@ def answer_question(question, top_k=5):
     years = extract_relevant_years(question)
     print(f"[Extracted Years] {years if years else 'None'}")
 
-    if years:
-        filtered_texts = [t for t in texts if any(str(y) in t for y in years)]
-        if not filtered_texts:
-            return "Sorry, I couldn't find any disaster data related to those years."
+    with torch.no_grad():
+        query_embedding = embedding_model.encode([question]).astype("float32")
 
-        # Local FAISS search over the filtered set
-        filtered_embeddings = embedding_model.encode(filtered_texts).astype("float32")
-        temp_index = faiss.IndexFlatL2(filtered_embeddings.shape[1])
-        temp_index.add(filtered_embeddings)
-        query_embedding = embedding_model.encode([question]).astype("float32")
-        torch.cuda.empty_cache()
-        distances, indices = temp_index.search(query_embedding, top_k)
-        retrieved_chunks = [filtered_texts[i] for i in indices[0]]
-    else:
-        # No year filter, default to full index
-        query_embedding = embedding_model.encode([question]).astype("float32")
-        torch.cuda.empty_cache()
-        distances, indices = index.search(query_embedding, top_k)
-        retrieved_chunks = [texts[i] for i in indices[0]]
+        if years:
+            filtered_texts = [t for t in texts if any(str(y) in t for y in years)]
+            if not filtered_texts:
+                return "Sorry, I couldn't find any disaster data related to those years."
+
+            filtered_embeddings = embedding_model.encode(filtered_texts).astype("float32")
+            temp_index = faiss.IndexFlatL2(filtered_embeddings.shape[1])
+            temp_index.add(filtered_embeddings)
+            distances, indices = temp_index.search(query_embedding, top_k)
+            retrieved_chunks = [filtered_texts[i] for i in indices[0]]
+        else:
+            distances, indices = index.search(query_embedding, top_k)
+            retrieved_chunks = [texts[i] for i in indices[0]]
 
     context = "\n".join(retrieved_chunks)
     print("\n[Context Preview]")
@@ -105,8 +102,12 @@ def answer_question(question, top_k=5):
         "Answer:"
     )
 
-    result = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]["generated_text"]
+    causal_model.to("cuda")
+    with torch.no_grad():
+        result = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]["generated_text"]
+    causal_model.to("cpu")
     torch.cuda.empty_cache()
+
     print("\n[Answer]")
     print(result)
 
