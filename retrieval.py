@@ -34,72 +34,66 @@ qa = pipeline(
 )
 
 def convert_words_to_numbers(text):
+    # Convert spelled-out numbers to digits
     try:
-        words = text.split()
-        converted = []
-        for i, word in enumerate(words):
-            try:
-                num = w2n.word_to_num(word)
-                converted.append(str(num))
-            except:
-                converted.append(word)
-        return ' '.join(converted)
+        return re.sub(r'\b(one|two|three|four|five|six|seven|eight|nine|ten)\b',
+                      lambda x: str(w2n.word_to_num(x.group())), text, flags=re.IGNORECASE)
     except:
         return text
-    
-def extract_year_from_question(question):
-    question = convert_words_to_numbers(question)  # <-- important!
+
+def extract_relevant_years(question, start_year=2015, end_year=2025):
+    current_year = datetime.now().year
+    question = convert_words_to_numbers(question)
+
     years = set()
 
-    # Extract explicit years
-    match = re.findall(r"\b(201[5-9]|202[0-5])\b", question)
-    years.update(map(int, match))
+    # Match explicit years like 2019, 2023
+    year_matches = re.findall(r"\b(20[1-2][0-9])\b", question)
+    for match in year_matches:
+        year = int(match)
+        if start_year <= year <= end_year:
+            years.add(year)
 
-    # Handle relative range
-    range_match = re.search(r"over the last (\d+) years", question, re.IGNORECASE)
-    if range_match:
-        n_years = int(range_match.group(1))
-        current_year = datetime.now().year
-        for y in range(current_year - n_years + 1, current_year + 1):
-            if 2015 <= y <= 2025:
-                years.add(y)
+    # Match relative expressions like "last 2 years"
+    rel_match = re.search(r"last (\d{1,2}) years", question, re.IGNORECASE)
+    if rel_match:
+        n_years = int(rel_match.group(1))
+        for i in range(n_years):
+            year = current_year - i
+            if start_year <= year <= end_year:
+                years.add(year)
 
-    return sorted(list(years))
+    return sorted(years)
 
 
 def answer_question(question, top_k=5):
     print(f"\n=== Question: {question} ===")
 
-    year = extract_year_from_question(question)
-    query_embedding = embedding_model.encode([question]).astype("float32")
+    years = extract_relevant_years(question)
+    print(f"[Extracted Years] {years if years else 'None'}")
 
-    if year:
-        # Filter texts that contain the target year
-        filtered_texts = [t for t in texts if str(year) in t]
-        
-        if filtered_texts:
-            # Create temporary FAISS index on the filtered texts
-            filtered_embeddings = embedding_model.encode(filtered_texts).astype("float32")
-            temp_index = faiss.IndexFlatL2(filtered_embeddings.shape[1])
-            temp_index.add(filtered_embeddings)
-            distances, indices = temp_index.search(query_embedding, top_k)
-            retrieved_chunks = [filtered_texts[i] for i in indices[0]]
-        else:
-            print(f"\n[Notice] No matches found for year {year}. Falling back to full search.")
-            distances, indices = index.search(query_embedding, top_k)
-            retrieved_chunks = [texts[i] for i in indices[0]]
+    if years:
+        filtered_texts = [t for t in texts if any(str(y) in t for y in years)]
+        if not filtered_texts:
+            return "Sorry, I couldn't find any disaster data related to those years."
+
+        # Local FAISS search over the filtered set
+        filtered_embeddings = embedding_model.encode(filtered_texts).astype("float32")
+        temp_index = faiss.IndexFlatL2(filtered_embeddings.shape[1])
+        temp_index.add(filtered_embeddings)
+        query_embedding = embedding_model.encode([question]).astype("float32")
+        distances, indices = temp_index.search(query_embedding, top_k)
+        retrieved_chunks = [filtered_texts[i] for i in indices[0]]
     else:
-        # No year provided — use full index
+        # No year filter, default to full index
+        query_embedding = embedding_model.encode([question]).astype("float32")
         distances, indices = index.search(query_embedding, top_k)
         retrieved_chunks = [texts[i] for i in indices[0]]
 
     context = "\n".join(retrieved_chunks)
-
-    # Display context preview
     print("\n[Context Preview]")
     print(context[:500] + "...\n")
 
-    # Prompt construction
     prompt = (
         "Use the following context to answer the question. "
         "If the answer isn’t clearly stated, try your best to infer it, but don't guess.\n\n"
@@ -108,9 +102,7 @@ def answer_question(question, top_k=5):
         "Answer:"
     )
 
-    # Generate answer
     result = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]["generated_text"]
-    
     print("\n[Answer]")
     print(result)
 
