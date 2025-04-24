@@ -12,7 +12,6 @@ index = faiss.read_index("disaster_faiss.index")
 
 # Reload the chunk texts (title + content)
 df = pd.read_csv("indexed_chunks.csv")
-print(df.columns)
 texts = df["chunk"]
 texts = texts.tolist()
 
@@ -56,9 +55,4 @@ def answer_question(question, top_k=2):
     print("\n[Answer]")
     print(result)
 
-# Example usage
-# if __name__ == "__main__":
-#     q = input("Enter your question: ")
-#     answer_question(q)
-
-answer_question("Summarize disasters in Africa in 2017.")
+answer_question("What are a few disasters that have occurred in Nigeria?")
