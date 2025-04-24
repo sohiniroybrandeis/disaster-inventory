@@ -6,6 +6,7 @@ from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 import re
 import dateparser
 from datetime import datetime
+from word2number import w2n
 
 
 # Load SentenceTransformer model for embeddings
@@ -32,20 +33,39 @@ qa = pipeline(
     return_full_text=False
 )
 
+def convert_words_to_numbers(text):
+    try:
+        words = text.split()
+        converted = []
+        for i, word in enumerate(words):
+            try:
+                num = w2n.word_to_num(word)
+                converted.append(str(num))
+            except:
+                converted.append(word)
+        return ' '.join(converted)
+    except:
+        return text
+    
 def extract_year_from_question(question):
-    # First try to extract an explicit year (2015–2025)
-    match = re.search(r"\b(201[5-9]|202[0-5])\b", question)
-    if match:
-        return int(match.group(1))
+    question = convert_words_to_numbers(question)  # <-- important!
+    years = set()
 
-    # Otherwise, try parsing relative expressions
-    parsed_date = dateparser.parse(question, settings={"PREFER_DATES_FROM": "past"})
-    if parsed_date:
-        year = parsed_date.year
-        if 2015 <= year <= 2025:
-            return year
+    # Extract explicit years
+    match = re.findall(r"\b(201[5-9]|202[0-5])\b", question)
+    years.update(map(int, match))
 
-    return None
+    # Handle relative range
+    range_match = re.search(r"over the last (\d+) years", question, re.IGNORECASE)
+    if range_match:
+        n_years = int(range_match.group(1))
+        current_year = datetime.now().year
+        for y in range(current_year - n_years + 1, current_year + 1):
+            if 2015 <= y <= 2025:
+                years.add(y)
+
+    return sorted(list(years))
+
 
 def answer_question(question, top_k=5):
     print(f"\n=== Question: {question} ===")
