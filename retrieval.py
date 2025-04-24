@@ -13,7 +13,7 @@ index = faiss.read_index("disaster_faiss.index")
 # Reload the chunk texts (title + content)
 df = pd.read_csv("indexed_chunks.csv")
 print(df.columns)
-texts = df["title"].fillna("") + " - " + df["content"].fillna("")
+texts = df["chunk"]
 texts = texts.tolist()
 
 # Load Gemma 2B Instruct model for text generation
