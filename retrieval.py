@@ -10,9 +10,9 @@ embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 # Load FAISS index for searching
 index = faiss.read_index("disaster_faiss.index")
 
-# Reload the original texts (assuming this has disaster-related information)
-df = pd.read_csv("cleaned_rag_dataset.csv")
-texts = df["content"].tolist()
+# Reload the chunk texts (title + content)
+df = pd.read_csv("indexed_chunks.csv")
+texts = df["chunk"].tolist()
 
 # Load Gemma 2B Instruct model for text generation
 model_name = "google/gemma-2b-it"
@@ -63,7 +63,7 @@ def answer_question(question, top_k=2):
     retrieved_chunks = [texts[i] for i in I[0]]
     context = "\n".join(retrieved_chunks)
     context = truncate_text(context, question, max_tokens=512, reserved_for_prompt=100)
-    
+
     # Print a preview of the context
     print("\n[Context Preview]")
     print(context[:500], "\n...")
@@ -79,7 +79,7 @@ def answer_question(question, top_k=2):
 
     # Step 4: Generate the answer using the causal language model
     response = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]['generated_text']
-    
+
     print("\n[Raw Model Output]")
     print(response)
 

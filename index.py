@@ -6,8 +6,10 @@ import numpy as np
 # Load your CSV
 df = pd.read_csv("cleaned_rag_dataset.csv")
 
-# Extract the text column
-chunks = df["content"].tolist()  # or any column with the main text
+# Combine title and content for better context
+# Use newline for clearer separation
+df["chunk"] = df["title"].fillna("") + "\n" + df["content"].fillna("")
+chunks = df["chunk"].tolist()
 
 # Load a lightweight, accurate embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')  # Fast + good quality
@@ -22,5 +24,6 @@ embeddings = np.array(embeddings).astype("float32")
 index = faiss.IndexFlatL2(embeddings.shape[1])
 index.add(embeddings)
 
-# Optional: Save index for later use
+# Save index and text chunks for retrieval
 faiss.write_index(index, "disaster_faiss.index")
+df[["chunk"]].to_csv("indexed_chunks.csv", index=False)
