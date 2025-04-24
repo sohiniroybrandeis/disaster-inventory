@@ -103,10 +103,8 @@ def answer_question(question, top_k=5):
         "Answer:"
     )
 
-    causal_model.to("cuda")
     with torch.no_grad():
         result = qa(prompt, max_new_tokens=200, do_sample=False, temperature=0.1)[0]["generated_text"]
-    causal_model.to("cpu")
     torch.cuda.empty_cache()
 
     print("\n[Answer]")
