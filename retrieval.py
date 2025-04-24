@@ -31,7 +31,8 @@ qa = pipeline(
     "text-generation", 
     model=causal_model, 
     tokenizer=tokenizer,
-    return_full_text=False
+    return_full_text=False,
+    device="cpu"  # <- This prevents CUDA memory usage entirely
 )
 
 def convert_words_to_numbers(text):
