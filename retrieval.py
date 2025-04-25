@@ -112,14 +112,16 @@ def answer_question(question, top_k=5):
     print("\n[Answer]")
     print(result)
 
-if __name__ == "__main__":
-    print("🔍 Welcome to the Disaster QA System for Africa (2015–2025)")
-    print("Type your question about disasters")
-    print("Type 'exit' or 'quit' to end the session.\n")
+answer_question("Summarize disasters occurring in Africa in 2015.")
 
-    while True:
-        user_input = input("🧠 Ask a question: ").strip()
-        if user_input.lower() in {"exit", "quit"}:
-            print("👋 Exiting. Stay safe!")
-            break
-        answer_question(user_input)
+# if __name__ == "__main__":
+#     print("🔍 Welcome to the Disaster QA System for Africa (2015–2025)")
+#     print("Type your question about disasters")
+#     print("Type 'exit' or 'quit' to end the session.\n")
+
+#     while True:
+#         user_input = input("Ask a question: ").strip()
+#         if user_input.lower() in {"exit", "quit"}:
+#             print("👋 Exiting. Stay safe!")
+#             break
+#         answer_question(user_input)
