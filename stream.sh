@@ -1,12 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=232-app
-#SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=4
+#SBATCH --ntasks=4         # Use 4 CPU tasks (for data loading)
 #SBATCH --mem=16G
-#SBATCH --time=01:00:00
-#SBATCH --output=streamlit_output.log
-#SBATCH --error=streamlit_error.log
 
 # Optional: Print the node and port info for tunneling
 echo "Job running on $(hostname)"
