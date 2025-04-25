@@ -112,4 +112,4 @@ def answer_question(question, top_k=5):
     print("\n[Answer]")
     print(result)
 
-answer_question("What are some disasters that have occurred in Nigeria within the last two years?")
+answer_question("What are the most common types of natural disasters in Africa from 2015 to 2025?")
