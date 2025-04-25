@@ -12,4 +12,4 @@ echo "To access the Streamlit app, use:"
 echo "ssh -N -L 8501:localhost:8501 $USER@$(hostname)"
 
 # Run the Streamlit app
-streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+streamlit run disaster_app.py --server.port 8501 --server.address 0.0.0.0
