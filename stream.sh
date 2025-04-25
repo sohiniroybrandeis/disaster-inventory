@@ -3,6 +3,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks=4         # Use 4 CPU tasks (for data loading)
 #SBATCH --mem=16G
+#SBATCH --output=streamlit_output.log
+#SBATCH --error=streamlit_error.log
 
 # Optional: Print the node and port info for tunneling
 echo "Job running on $(hostname)"
