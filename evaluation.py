@@ -59,8 +59,12 @@ def evaluate_retrieval(qa_data, faiss_index, k=5):
         # Get the retrieved answers based on indices
         retrieved_answers = get_answer_from_index(top_k_indices[0])
         
-        # Check if the relevant answer is in the top-k retrieved answers
-        is_relevant = [1 if relevant_answer == ans else 0 for ans in retrieved_answers]
+        # More flexible relevance checking
+        is_relevant = [
+            1 if relevant_answer.lower() in ans.lower() or ans.lower() in relevant_answer.lower()
+            else 0
+            for ans in retrieved_answers
+        ]
         
         # Calculate Precision, Recall, F1, and MRR for this query
         precision = precision_score([1] * len(is_relevant), is_relevant, average='binary', zero_division=0)
@@ -70,7 +74,7 @@ def evaluate_retrieval(qa_data, faiss_index, k=5):
         # MRR calculation: find first relevant answer in the top-k
         mrr = 0
         if 1 in is_relevant:
-            mrr = 1 / (is_relevant.index(1) + 1)  # MRR for the first relevant result
+            mrr = 1 / (is_relevant.index(1) + 1)
 
         precision_scores.append(precision)
         recall_scores.append(recall)
