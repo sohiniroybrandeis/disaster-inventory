@@ -1,11 +1,8 @@
-from sklearn.metrics import precision_score, recall_score, f1_score
 from sentence_transformers import SentenceTransformer
-import numpy as np
 import faiss
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
-import torch
 import pandas as pd
 from rouge_score import rouge_scorer
+import numpy as np
 
 # Load SentenceTransformer model for embeddings
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -24,7 +21,7 @@ qa_data = pd.read_csv('qa_eval.csv', quotechar='"')
 # Assuming qa_eval.csv has columns: ['query', 'relevant_answer']
 
 # Function to retrieve top-k answers using FAISS
-def retrieve_top_k(query_embedding, faiss_index, k=5):
+def retrieve_top_k(query_embedding, faiss_index, k):
     # Perform the retrieval (this assumes query_embedding and faiss_index are available)
     # Querying the FAISS index
     D, I = faiss_index.search(query_embedding, k)  # D = distances, I = indices
@@ -40,13 +37,8 @@ def get_answer_from_index(indices):
     # Get the actual answers based on the indices
     return [texts[i] for i in indices]
 
-# Evaluate Precision, Recall, F1-Score, MRR, ROUGE
-def evaluate_retrieval(qa_data, faiss_index, k=5):
-    precision_scores = []
-    recall_scores = []
-    f1_scores = []
-    mrr_scores = []
-
+# Evaluate using ROUGE
+def evaluate_retrieval(qa_data, faiss_index, k):
     rouge1_scores = []
     rouge2_scores = []
     rougeL_scores = []
@@ -66,24 +58,6 @@ def evaluate_retrieval(qa_data, faiss_index, k=5):
         # Get the retrieved answers
         retrieved_answers = get_answer_from_index(top_k_indices[0])
 
-        # --- Precision/Recall/F1 logic ---
-        is_relevant = [1 if relevant_answer.strip().lower() in ans.strip().lower() else 0 for ans in retrieved_answers]
-        
-        precision = precision_score([1] * len(is_relevant), is_relevant, average='binary', zero_division=0)
-        recall = recall_score([1] * len(is_relevant), is_relevant, average='binary', zero_division=0)
-        f1 = f1_score([1] * len(is_relevant), is_relevant, average='binary', zero_division=0)
-        
-        # MRR: Reciprocal rank
-        mrr = 0
-        if 1 in is_relevant:
-            mrr = 1 / (is_relevant.index(1) + 1)
-
-        precision_scores.append(precision)
-        recall_scores.append(recall)
-        f1_scores.append(f1)
-        mrr_scores.append(mrr)
-
-        # --- ROUGE logic ---
         # Take only the best retrieved answer (top-1)
         if retrieved_answers:
             best_answer = retrieved_answers[0]
@@ -93,12 +67,8 @@ def evaluate_retrieval(qa_data, faiss_index, k=5):
             rouge2_scores.append(scores['rouge2'].fmeasure)
             rougeL_scores.append(scores['rougeL'].fmeasure)
 
-    # Aggregate metrics
+    # Aggregate ROUGE metrics
     results = {
-        "avg_precision": np.mean(precision_scores),
-        "avg_recall": np.mean(recall_scores),
-        "avg_f1": np.mean(f1_scores),
-        "avg_mrr": np.mean(mrr_scores),
         "avg_rouge1": np.mean(rouge1_scores),
         "avg_rouge2": np.mean(rouge2_scores),
         "avg_rougeL": np.mean(rougeL_scores)
@@ -107,12 +77,8 @@ def evaluate_retrieval(qa_data, faiss_index, k=5):
     return results
 
 # Call the evaluation function
-results = evaluate_retrieval(qa_data, index, k=5)
+results = evaluate_retrieval(qa_data, index, k=10)
 
-print(f"Precision: {results['avg_precision']:.4f}")
-print(f"Recall: {results['avg_recall']:.4f}")
-print(f"F1-Score: {results['avg_f1']:.4f}")
-print(f"MRR: {results['avg_mrr']:.4f}")
 print(f"ROUGE-1: {results['avg_rouge1']:.4f}")
 print(f"ROUGE-2: {results['avg_rouge2']:.4f}")
 print(f"ROUGE-L: {results['avg_rougeL']:.4f}")
