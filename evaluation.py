@@ -18,7 +18,7 @@ texts = texts.tolist()
 index = faiss.read_index("disaster_faiss.index")
 
 # Load your evaluation CSV (qa_eval.csv)
-qa_data = pd.read_csv('qa_eval.csv')
+qa_data = pd.read_csv('qa_eval.csv', quotechar='"')
 
 # Assuming qa_eval.csv has columns: ['query', 'relevant_answer']
 
