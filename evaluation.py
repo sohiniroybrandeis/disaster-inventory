@@ -38,7 +38,8 @@ def get_answer_from_index(indices):
     return [texts[i] for i in indices]
 
 # Evaluate using ROUGE
-def evaluate_retrieval(qa_data, faiss_index, k):
+# Evaluate using ROUGE with debugging info
+def evaluate_retrieval(qa_data, faiss_index, k=10):
     rouge1_scores = []
     rouge2_scores = []
     rougeL_scores = []
@@ -58,6 +59,12 @@ def evaluate_retrieval(qa_data, faiss_index, k):
         # Get the retrieved answers
         retrieved_answers = get_answer_from_index(top_k_indices[0])
 
+        # Debugging: Print retrieved answers for each query
+        print(f"Query: {query}")
+        print("Top-k Retrieved Answers:")
+        for i, ans in enumerate(retrieved_answers):
+            print(f"{i+1}: {ans}")
+
         # Take only the best retrieved answer (top-1)
         if retrieved_answers:
             best_answer = retrieved_answers[0]
@@ -75,6 +82,13 @@ def evaluate_retrieval(qa_data, faiss_index, k):
     }
 
     return results
+
+# Call the evaluation function
+results = evaluate_retrieval(qa_data, index, k=10)
+
+print(f"ROUGE-1: {results['avg_rouge1']:.4f}")
+print(f"ROUGE-2: {results['avg_rouge2']:.4f}")
+print(f"ROUGE-L: {results['avg_rougeL']:.4f}")
 
 # Call the evaluation function
 results = evaluate_retrieval(qa_data, index, k=10)
