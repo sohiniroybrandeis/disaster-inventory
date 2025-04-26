@@ -16,6 +16,7 @@ texts = texts.tolist()
 
 # Load FAISS index from the file
 index = faiss.read_index("disaster_faiss.index")
+print(f"FAISS index total entries: {index.ntotal}")
 
 # Load your evaluation CSV (qa_eval.csv)
 qa_data = pd.read_csv('qa_eval.csv', quotechar='"')
@@ -52,12 +53,21 @@ def evaluate_retrieval(qa_data, faiss_index, k=5):
         
         # Get query embedding
         query_embedding = get_embedding(query)
+        print(f"Query embedding shape: {query_embedding.shape}")
         
         # Retrieve the top-k answers using FAISS
         top_k_indices = retrieve_top_k(query_embedding, faiss_index, k)
         
         # Get the retrieved answers based on indices
         retrieved_answers = get_answer_from_index(top_k_indices[0])
+
+        print("Query:", query)
+        print("Relevant:", relevant_answer)
+        print("Retrieved answers:")
+        for ans in retrieved_answers:
+            print("-", ans)
+        print("="*40)
+
         
         # More flexible relevance checking
         is_relevant = [
