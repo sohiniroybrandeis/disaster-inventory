@@ -61,12 +61,12 @@ def evaluate_retrieval(qa_data, faiss_index, k=5):
         # Get the retrieved answers based on indices
         retrieved_answers = get_answer_from_index(top_k_indices[0])
 
-        print("Query:", query)
-        print("Relevant:", relevant_answer)
-        print("Retrieved answers:")
-        for ans in retrieved_answers:
-            print("-", ans)
-        print("="*40)
+        # print("Query:", query)
+        # print("Relevant:", relevant_answer)
+        # print("Retrieved answers:")
+        # for ans in retrieved_answers:
+        #     print("-", ans)
+        # print("="*40)
 
         
         # More flexible relevance checking
