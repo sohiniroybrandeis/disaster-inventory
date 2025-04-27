@@ -1,8 +1,8 @@
 from sentence_transformers import SentenceTransformer
 import faiss
 import pandas as pd
-from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 import numpy as np
+import bert_score
 
 # Load SentenceTransformer model for embeddings
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -31,25 +31,19 @@ def get_embedding(query):
 def get_answer_from_index(indices):
     return [texts[i] for i in indices]
 
-# Evaluate using BLEU
-def evaluate_retrieval_bleu(qa_data, faiss_index, k=10):
-    bleu_scores = []
-    smoothing = SmoothingFunction().method4  # Smoothing to avoid zero scores
+# Evaluate using BERTScore
+def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10):
+    references = []
+    candidates = []
 
     for idx, row in qa_data.iterrows():
         query = row['query']
         relevant_answer = row['relevant_answer']
         
-        # Get query embedding
         query_embedding = get_embedding(query)
-        
-        # Retrieve top-k answers
         top_k_indices = retrieve_top_k(query_embedding, faiss_index, k)
-        
-        # Get the retrieved answers
         retrieved_answers = get_answer_from_index(top_k_indices[0])
 
-        # Debugging: Print retrieved answers for each query
         print(f"Query: {query}")
         print("Top-k Retrieved Answers:")
         for i, ans in enumerate(retrieved_answers):
@@ -57,19 +51,23 @@ def evaluate_retrieval_bleu(qa_data, faiss_index, k=10):
 
         if retrieved_answers:
             best_answer = retrieved_answers[0]
-            reference = relevant_answer.split()  # Tokenized reference
-            hypothesis = best_answer.split()      # Tokenized generation
+            candidates.append(best_answer)
+            references.append(relevant_answer)
 
-            bleu_score = sentence_bleu([reference], hypothesis, smoothing_function=smoothing)
-            bleu_scores.append(bleu_score)
-
+    # Compute BERTScore
+    P, R, F1 = bert_score.score(candidates, references, lang="en", verbose=True)
+    
     results = {
-        "avg_bleu": np.mean(bleu_scores)
+        "avg_precision": P.mean().item(),
+        "avg_recall": R.mean().item(),
+        "avg_f1": F1.mean().item()
     }
 
     return results
 
-# Call the BLEU evaluation function
-results = evaluate_retrieval_bleu(qa_data, index, k=10)
+# Call the BERTScore evaluation function
+results = evaluate_retrieval_bertscore(qa_data, index, k=10)
 
-print(f"BLEU Score: {results['avg_bleu']:.4f}")
+print(f"BERTScore Precision: {results['avg_precision']:.4f}")
+print(f"BERTScore Recall: {results['avg_recall']:.4f}")
+print(f"BERTScore F1: {results['avg_f1']:.4f}")
