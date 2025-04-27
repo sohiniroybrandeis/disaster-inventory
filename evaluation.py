@@ -1,7 +1,7 @@
 from sentence_transformers import SentenceTransformer
 import faiss
 import pandas as pd
-from rouge_score import rouge_scorer
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 import numpy as np
 
 # Load SentenceTransformer model for embeddings
@@ -18,33 +18,23 @@ index = faiss.read_index("disaster_faiss.index")
 # Load your evaluation CSV (qa_eval.csv)
 qa_data = pd.read_csv('qa_eval.csv', quotechar='"')
 
-# Assuming qa_eval.csv has columns: ['query', 'relevant_answer']
-
 # Function to retrieve top-k answers using FAISS
 def retrieve_top_k(query_embedding, faiss_index, k):
-    # Perform the retrieval (this assumes query_embedding and faiss_index are available)
-    # Querying the FAISS index
-    D, I = faiss_index.search(query_embedding, k)  # D = distances, I = indices
+    D, I = faiss_index.search(query_embedding, k)
     return I
 
-# Define get_embedding using your SentenceTransformer model
+# Define get_embedding
 def get_embedding(query):
-    # Use the preloaded SentenceTransformer model to get embeddings
     return embedding_model.encode([query]).astype("float32")
 
-# Define get_answer_from_index to retrieve relevant answers based on FAISS indices
+# Define get_answer_from_index
 def get_answer_from_index(indices):
-    # Get the actual answers based on the indices
     return [texts[i] for i in indices]
 
-# Evaluate using ROUGE
-# Evaluate using ROUGE with debugging info
-def evaluate_retrieval(qa_data, faiss_index, k=10):
-    rouge1_scores = []
-    rouge2_scores = []
-    rougeL_scores = []
-
-    scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
+# Evaluate using BLEU
+def evaluate_retrieval_bleu(qa_data, faiss_index, k=10):
+    bleu_scores = []
+    smoothing = SmoothingFunction().method4  # Smoothing to avoid zero scores
 
     for idx, row in qa_data.iterrows():
         query = row['query']
@@ -53,7 +43,7 @@ def evaluate_retrieval(qa_data, faiss_index, k=10):
         # Get query embedding
         query_embedding = get_embedding(query)
         
-        # Retrieve the top-k answers using FAISS
+        # Retrieve top-k answers
         top_k_indices = retrieve_top_k(query_embedding, faiss_index, k)
         
         # Get the retrieved answers
@@ -65,34 +55,21 @@ def evaluate_retrieval(qa_data, faiss_index, k=10):
         for i, ans in enumerate(retrieved_answers):
             print(f"{i+1}: {ans}")
 
-        # Take only the best retrieved answer (top-1)
         if retrieved_answers:
             best_answer = retrieved_answers[0]
-            scores = scorer.score(relevant_answer, best_answer)
+            reference = relevant_answer.split()  # Tokenized reference
+            hypothesis = best_answer.split()      # Tokenized generation
 
-            rouge1_scores.append(scores['rouge1'].fmeasure)
-            rouge2_scores.append(scores['rouge2'].fmeasure)
-            rougeL_scores.append(scores['rougeL'].fmeasure)
+            bleu_score = sentence_bleu([reference], hypothesis, smoothing_function=smoothing)
+            bleu_scores.append(bleu_score)
 
-    # Aggregate ROUGE metrics
     results = {
-        "avg_rouge1": np.mean(rouge1_scores),
-        "avg_rouge2": np.mean(rouge2_scores),
-        "avg_rougeL": np.mean(rougeL_scores)
+        "avg_bleu": np.mean(bleu_scores)
     }
 
     return results
 
-# Call the evaluation function
-results = evaluate_retrieval(qa_data, index, k=10)
+# Call the BLEU evaluation function
+results = evaluate_retrieval_bleu(qa_data, index, k=10)
 
-print(f"ROUGE-1: {results['avg_rouge1']:.4f}")
-print(f"ROUGE-2: {results['avg_rouge2']:.4f}")
-print(f"ROUGE-L: {results['avg_rougeL']:.4f}")
-
-# Call the evaluation function
-results = evaluate_retrieval(qa_data, index, k=10)
-
-print(f"ROUGE-1: {results['avg_rouge1']:.4f}")
-print(f"ROUGE-2: {results['avg_rouge2']:.4f}")
-print(f"ROUGE-L: {results['avg_rougeL']:.4f}")
+print(f"BLEU Score: {results['avg_bleu']:.4f}")
