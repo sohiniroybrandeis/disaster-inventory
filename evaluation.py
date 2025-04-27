@@ -44,8 +44,6 @@ def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10):
         top_k_indices = retrieve_top_k(query_embedding, faiss_index, k)
         retrieved_answers = get_answer_from_index(top_k_indices[0])
 
-        print(f"Query: {query}")
-        print("Top-k Retrieved Answers:")
         for i, ans in enumerate(retrieved_answers):
             print(f"{i+1}: {ans}")
 
