@@ -9,7 +9,6 @@ from datetime import datetime
 from word2number import w2n
 import torch
 
-
 # Load SentenceTransformer model for embeddings
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
