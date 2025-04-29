@@ -32,7 +32,7 @@ def get_answer_from_index(indices):
     return [texts[i] for i in indices]
 
 # Evaluate using BERTScore
-def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10):
+def evaluate_retrieval_bertscore(qa_data, faiss_index, k=5):
     references = []
     candidates = []
 
