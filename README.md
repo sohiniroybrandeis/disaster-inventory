@@ -28,4 +28,8 @@ Code is organized into the given files:
 
 ### Running Code
 
-After cloning the github repository, all requirements can be installed by running pip install -r requirements.txt. Make sure to be in the same directory as the requirements file. Retrieval can be done by running retrieval.py, and evaluation can be done by running evaluation.py.
+After cloning the github repository, all requirements can be installed by running:
+
+`pip install -r requirements.txt.`
+
+Make sure to be in the same directory as the requirements file. Retrieval can be done by running retrieval.py, and evaluation can be done by running evaluation.py.
