@@ -32,7 +32,7 @@ def get_answer_from_index(indices):
     return [texts[i] for i in indices]
 
 # Evaluate using BERTScore
-def evaluate_retrieval_bertscore(qa_data, faiss_index, k=5):
+def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10):
     references = []
     candidates = []
 
@@ -44,8 +44,8 @@ def evaluate_retrieval_bertscore(qa_data, faiss_index, k=5):
         top_k_indices = retrieve_top_k(query_embedding, faiss_index, k)
         retrieved_answers = get_answer_from_index(top_k_indices[0])
 
-        for i, ans in enumerate(retrieved_answers):
-            print(f"{i+1}: {ans}")
+        # for i, ans in enumerate(retrieved_answers):
+        #     print(f"{i+1}: {ans}")
 
         if retrieved_answers:
             best_answer = retrieved_answers[0]

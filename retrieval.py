@@ -96,7 +96,8 @@ def answer_question(question, top_k=5):
 
     prompt = (
         "You are a helpful assistant summarizing recent disaster events in Africa based on the context below. "
-        "Use the information to write a concise summary, highlighting locations, dates, and impacts. "
+        "Use the information to write a concise summary, highlighting locations, dates, and impacts."
+        "Include any specific information on disaster relief and how to take action beforehand."
         "If only partial information is available, summarize what is known.\n\n"
         f"Context:\n{context}\n\n"
         f"Question: {question}\n\n"
