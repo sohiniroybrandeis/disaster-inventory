@@ -4,35 +4,27 @@ import pandas as pd
 import numpy as np
 import bert_score
 
-# Load SentenceTransformer model for embeddings
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Reload the chunk texts (title + content)
-df = pd.read_csv("indexed_chunks.csv")
+df = pd.read_csv("indexed_chunks.csv") #reload the chunk texts (title + content)
 texts = df["chunk"]
 texts = texts.tolist()
 
-# Load FAISS index from the file
-index = faiss.read_index("disaster_faiss.index")
+index = faiss.read_index("disaster_faiss.index") #load FAISS index
 
-# Load your evaluation CSV (qa_eval.csv)
-qa_data = pd.read_csv('qa_eval.csv', quotechar='"')
+qa_data = pd.read_csv('qa_eval.csv', quotechar='"') #load evaluation CSV (qa_eval.csv)
 
-# Function to retrieve top-k answers using FAISS
-def retrieve_top_k(query_embedding, faiss_index, k):
+def retrieve_top_k(query_embedding, faiss_index, k): #retrieve top-k answers using embeddings
     D, I = faiss_index.search(query_embedding, k)
     return I
 
-# Define get_embedding
 def get_embedding(query):
     return embedding_model.encode([query]).astype("float32")
 
-# Define get_answer_from_index
 def get_answer_from_index(indices):
     return [texts[i] for i in indices]
 
-# Evaluate using BERTScore
-def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10):
+def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10): # evaluate using BERTScore
     references = []
     candidates = []
 
@@ -52,8 +44,7 @@ def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10):
             candidates.append(best_answer)
             references.append(relevant_answer)
 
-    # Compute BERTScore
-    P, R, F1 = bert_score.score(candidates, references, lang="en", verbose=True)
+    P, R, F1 = bert_score.score(candidates, references, lang="en", verbose=True) #compute score
     
     results = {
         "avg_precision": P.mean().item(),
@@ -63,7 +54,7 @@ def evaluate_retrieval_bertscore(qa_data, faiss_index, k=10):
 
     return results
 
-# Call the BERTScore evaluation function
+
 results = evaluate_retrieval_bertscore(qa_data, index, k=10)
 
 print(f"BERTScore Precision: {results['avg_precision']:.4f}")

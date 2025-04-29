@@ -9,33 +9,28 @@ from datetime import datetime
 from word2number import w2n
 import torch
 
-# Load SentenceTransformer model for embeddings
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Load FAISS index for searching
-index = faiss.read_index("disaster_faiss.index")
+index = faiss.read_index("disaster_faiss.index") #load FAISS index for searching
 
-# Reload the chunk texts (title + content)
 df = pd.read_csv("indexed_chunks.csv")
 texts = df["chunk"]
-texts = texts.tolist()
+texts = texts.tolist() #chunks to list
 
-# Load Gemma 2B Instruct model for generation
-model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
+model_name = "meta-llama/Meta-Llama-3-8B-Instruct" # using llama 3 for generation
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 causal_model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# Set up QA pipeline
-qa = pipeline(
+
+qa = pipeline(          # set up QA pipeline
     "text-generation", 
     model=causal_model, 
     tokenizer=tokenizer,
     return_full_text=False,
-    device="cpu"  # <- This prevents CUDA memory usage entirely
+    device="cpu"
 )
 
-def convert_words_to_numbers(text):
-    # Convert spelled-out numbers to digits
+def convert_words_to_numbers(text): #method to convert words to numbers
     try:
         return re.sub(r'\b(one|two|three|four|five|six|seven|eight|nine|ten)\b',
                       lambda x: str(w2n.word_to_num(x.group())), text, flags=re.IGNORECASE)
@@ -48,14 +43,14 @@ def extract_relevant_years(question, start_year=2015, end_year=2025):
 
     years = set()
 
-    # Match explicit years like 2019, 2023
+    #match explicit years like 2019, 2023
     year_matches = re.findall(r"\b(20[1-2][0-9])\b", question)
     for match in year_matches:
         year = int(match)
         if start_year <= year <= end_year:
             years.add(year)
 
-    # Match relative expressions like "last 2 years"
+    #match relative expressions like "last three years"
     rel_match = re.search(r"last (\d{1,2}) years", question, re.IGNORECASE)
     if rel_match:
         n_years = int(rel_match.group(1))
