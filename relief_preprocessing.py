@@ -24,7 +24,7 @@ def clean_text(text):
 df["content"] = df["content"].apply(clean_text)
 df["title"] = df["title"].apply(clean_text)
 
-def chunk_text(text, max_length=300):
+def chunk_text(text, max_length=500):
     sentences = sent_tokenize(text)
     chunks, current_chunk = [], ""
 
