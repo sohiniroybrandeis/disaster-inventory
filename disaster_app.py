@@ -2,7 +2,7 @@ import streamlit as st
 from retrieval import answer_question, extract_relevant_years, texts
 
 st.set_page_config(page_title="Disaster QA in Africa", layout="wide")
-st.title("🌍 Disaster QA System (Africa, 2015–2025)")
+st.title("Disaster QA System (Africa, 2015–2025)")
 st.markdown("Ask any question about natural disasters in African countries between 2015 and 2025.")
 
 question = st.text_input("Enter your question:", value="What disasters occurred in 2023 in East Africa?") #user input
