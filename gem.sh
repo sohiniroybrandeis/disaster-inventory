@@ -11,4 +11,4 @@
 #SBATCH --mem=32G          # Request 32GB total RAM
 
 hostname
-python3 evaluation.py
+python3 retrieval.py
